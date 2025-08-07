@@ -1,3 +1,31 @@
+# Terraform directories and state files
+.terraform/
+terraform.tfstate
+terraform.tfstate.backup
+*.tfplan
+
+# Terraform variable files (often contain secrets)
+*.tfvars
+*.tfvars.json
+
+# AWS credentials & keys (in case accidentally inside project)
+.aws/
+credentials
+*.pem
+*.key
+
+# GCP service account keys (JSON)
+*.json
+
+# Editor and OS files
+*.swp
+*.swo
+*.DS_Store
+.vscode/
+.idea/
+
+
+
 # Compiled class file
 *.class
 
@@ -131,3 +159,4 @@ workspace.xml
 # npm
 /node_modules/
 /**/node_modules/
+
