@@ -5,6 +5,14 @@ terraform {
       version = "~> 5.0"
     }
 
+    vault = {
+      source  = "hashicorp/vault"
+      version = "~> 3.0"
+    }
+    random = {
+      source  = "hashicorp/random"
+      version = ">= 3.1.0"
+    }
     # Add gcp here if needed
     #    google = {
     #      source  = "hashicorp/google"
@@ -16,8 +24,10 @@ terraform {
 }
 
 resource "random_password" "db_password" {
-  length  = 16
-  special = true
+ length           = 16
+  special          = true
+  override_special = "!#$%&*()-_=+[]{}<>:?"
+
 }
 
 output "generated_db_password" {

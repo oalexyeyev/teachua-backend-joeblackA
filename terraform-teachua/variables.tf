@@ -1,3 +1,8 @@
+variable "vault_token" {
+  type      = string
+  sensitive = true
+}
+
 variable "cloud" {
   description = "Choose cloud: aws or gcp"
   type        = string

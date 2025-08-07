@@ -32,12 +32,12 @@ module "instances" {
   private_subnet_id = module.network.private_subnet_id
 }
 
- module "secrets_manager" {
-   source             = "./modules/secrets_manager"
-   secret_name        = "teachua-db-password"
-   secret_description = "RDS password for TeachUA project"
-   secret_string      = var.db_password
- }
+# module "secrets_manager" {
+#   source             = "./modules/secrets_manager"
+#   secret_name        = "teachua-db-password"
+#   secret_description = "RDS password for TeachUA project"
+#   secret_string      = var.db_password
+# }
 
 module "rds" {
   source = "./modules/rds"

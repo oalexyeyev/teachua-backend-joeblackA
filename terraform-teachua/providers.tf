@@ -14,6 +14,11 @@ provider "aws" {
   alias = "aws"
 }
 
+provider "vault" {
+  address = "https://teachua-vault-public-vault-951f8ada.c7ebbba7.z1.hashicorp.cloud:8200"
+  token   = var.vault_token
+}
+
 
 #provider "google" {
 #  project     = var.gcp_project
