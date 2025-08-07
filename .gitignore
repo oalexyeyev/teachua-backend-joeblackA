@@ -1,9 +1,10 @@
 # Terraform directories and state files
-.terraform/
-terraform.tfstate
-terraform.tfstate.backup
-*.tfplan
 
+*.tfstate
+*.tfstate.*
+.terraform/
+terraform.tfvars
+crash.log
 combined_terraform.txt
 
 # Terraform variable files (often contain secrets)
