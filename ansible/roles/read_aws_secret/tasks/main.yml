@@ -1,0 +1,14 @@
+---
+- name: Read secret from AWS Secrets Manager
+  amazon.aws.aws_secret:
+    name: "{{ secret_name }}"
+    region: "{{ aws_region }}"
+  register: aws_secret_result
+
+- name: Set secret value as fact
+  set_fact:
+    secret_value: "{{ aws_secret_result.value }}"
+
+- name: Show secret value
+  debug:
+    msg: "The secret is: {{ secret_value }}"

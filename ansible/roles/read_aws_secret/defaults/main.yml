@@ -1,0 +1,2 @@
+secret_name: "teachua/db_password"     # Назва секрету в AWS Secrets Manager
+aws_region: "us-east-1"

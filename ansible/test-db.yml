@@ -1,0 +1,12 @@
+- name: Test MySQL connection via CLI
+  hosts: backend
+  tasks:
+    - name: Run mysql version
+      shell: |
+         export MYSQL_PWD="JyG&EBHPQXIuQ%=5"
+         mysql -h teachua-db.cq9eoeqwa9wy.us-east-1.rds.amazonaws.com -u teachua-user -e "SELECT VERSION();"
+      register: mysql_test
+      ignore_errors: yes
+
+    - debug:
+        var: mysql_test.stdout

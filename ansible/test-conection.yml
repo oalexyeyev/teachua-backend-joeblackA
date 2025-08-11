@@ -1,0 +1,14 @@
+---
+- name: Test connection to bastion
+  hosts: bastion
+  gather_facts: false
+  tasks:
+    - name: Ping bastion host
+      ansible.builtin.ping:
+
+- name: Test connection to backend via bastion (ProxyJump + ForwardAgent)
+  hosts: backend
+  gather_facts: false
+  tasks:
+    - name: Ping backend host
+      ansible.builtin.ping:
