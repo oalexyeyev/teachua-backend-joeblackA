@@ -14,3 +14,15 @@ variable "db_password" {
   type      = string
   sensitive = true
 }
+
+variable "aws_az" {
+  description = "AWS Availability Zone to place all resources in"
+  type        = string
+  default     = "us-east-1a"
+}
+
+variable "aws_az_2" {
+  description = "AWS Availability Zone to place all resources in"
+  type        = string
+  default     = "us-east-1b"
+}

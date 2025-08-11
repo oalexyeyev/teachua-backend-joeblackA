@@ -19,6 +19,7 @@ resource "aws_db_instance" "mariadb" {
   vpc_security_group_ids  = [var.db_sg_id]
   publicly_accessible     = false
   multi_az                = false
+  availability_zone = "us-east-1a"
   skip_final_snapshot     = true
 
   tags = {

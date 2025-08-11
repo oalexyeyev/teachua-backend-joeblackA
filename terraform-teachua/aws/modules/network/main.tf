@@ -16,8 +16,8 @@ resource "aws_subnet" "public" {
   vpc_id                  = aws_vpc.this.id
   cidr_block              = var.public_subnet_cidr
   map_public_ip_on_launch = true
-  availability_zone       = data.aws_availability_zones.available.names[0]
-
+  #availability_zone       = data.aws_availability_zones.available.names[0]
+  availability_zone       = var.aws_az   # changed from data.aws_availability_zones
   tags = {
     Name = "Public-Subnet"
   }
@@ -27,11 +27,20 @@ resource "aws_subnet" "private" {
   vpc_id                  = aws_vpc.this.id
   cidr_block              = var.private_subnet_cidr
   map_public_ip_on_launch = false
-  availability_zone       = data.aws_availability_zones.available.names[1]
-
+  #availability_zone       = data.aws_availability_zones.available.names[1]
+  availability_zone       = var.aws_az   # changed from data.aws_availability_zones
   tags = {
     Name = "Private-Subnet"
   }
+}
+
+# Secondary private subnet in a different AZ just for RDS requirement
+resource "aws_subnet" "private_rds_dummy" {
+  vpc_id                  = aws_vpc.this.id
+  cidr_block              = var.private_subnet_cidr_2
+  map_public_ip_on_launch = false
+  availability_zone       = var.aws_az_2
+  tags = { Name = "Private-Subnet-Dummy-RDS" }
 }
 
 # PUBLIC route table → IGW
@@ -68,7 +77,7 @@ resource "aws_route_table_association" "private_subnet_association" {
   route_table_id = aws_route_table.private.id
 }
 
-data "aws_availability_zones" "available" {}
+#data "aws_availability_zones" "available" {}
 
 output "vpc_id" {
   value = aws_vpc.this.id
