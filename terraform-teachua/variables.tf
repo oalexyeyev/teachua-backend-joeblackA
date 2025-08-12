@@ -52,7 +52,7 @@ variable "aws_region" {
   default = "us-east-1"
 }
 
-variable "gcp_credentials_file" {
-  description = "Path to the GCP service account key file"
-  type        = string
-}
+#variable "gcp_credentials_file" {
+ # description = "Path to the GCP service account key file"
+  #type        = string
+#}
