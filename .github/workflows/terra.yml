@@ -38,4 +38,4 @@ jobs:
       - name: Terraform Apply
         run: |
           cd terraform-teachua
-          terraform apply -auto-approve
+          terraform apply -auto-approve -var="key_pair_name=${{ secrets.KEY_PAIR_NAME }}"
