@@ -31,7 +31,7 @@ jobs:
         run: |
           cd terraform-teachua
           terraform init
-      - name: Terraform plan
+      - name: Terraform plan -var="key_pair_name =${{ secrets.KEY_PAIR_NAME }}"
         run: |
           cd terraform-teachua
           terraform plan
