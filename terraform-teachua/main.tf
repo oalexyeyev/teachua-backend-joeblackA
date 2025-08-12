@@ -30,7 +30,7 @@ output "generated_db_password" {
 
 provider "aws" {
   region  = var.aws_region
-  profile = var.aws_profile
+  #profile = var.aws_profile
   assume_role {
     role_arn = "arn:aws:iam::135424146100:role/TerraformExecutionRole"
   }
