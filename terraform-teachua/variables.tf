@@ -38,9 +38,9 @@ variable "bastion_allowed_cidr" {
   description = "CIDR для доступу до Bastion SSH"
 }
 
-variable "gcp_project" {
-  type = string
-}
+#variable "gcp_project" {
+ # type = string
+#}
 
 #variable "gcp_region" {
  # type    = string
