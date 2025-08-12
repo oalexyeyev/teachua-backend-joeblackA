@@ -47,7 +47,7 @@ jobs:
         run: |
           cd terraform-teachua
           terraform apply -auto-approve -var="key_pair_name=${{ secrets.KEY_PAIR_NAME }}"
-          continue-on-error: true
+        continue-on-error: true
 
       - name: Upload Terraform state file
         uses: actions/upload-artifact@v4
