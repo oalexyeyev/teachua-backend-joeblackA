@@ -1,8 +1,6 @@
 name: Full CI/CD Pipeline
 
 on:
-    branches:
-      - feature/terraform-aws-without-nat
   workflow_dispatch:
 
 jobs:
