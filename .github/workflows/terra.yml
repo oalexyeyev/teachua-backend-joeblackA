@@ -34,7 +34,7 @@ jobs:
       - name: Terraform plan -var="key_pair_name =${{ secrets.KEY_PAIR_NAME }}"
         run: |
           cd terraform-teachua
-          terraform plan  -var="key_pair_name =${{ secrets.KEY_PAIR_NAME }}"
+          terraform plan  -var="key_pair_name=${{ secrets.KEY_PAIR_NAME }}"
       - name: Terraform Apply
         run: |
           cd terraform-teachua
