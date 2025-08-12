@@ -1,7 +1,6 @@
 name: Full CI/CD Pipeline
 
 on:
-  push:
     branches:
       - feature/terraform-aws-without-nat
   workflow_dispatch:
@@ -66,6 +65,10 @@ jobs:
         run: |
           cd terraform-teachua
           terraform init
+      - name: Terraform plan
+        run: |
+          cd terraform-teachua
+          terraform plan
 
       - name: Terraform Apply
         run: |
