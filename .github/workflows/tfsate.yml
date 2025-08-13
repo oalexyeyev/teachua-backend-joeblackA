@@ -8,7 +8,7 @@ jobs:
   terraform:
     name: Terraform Apply
     runs-on: ubuntu-latest
-       steps:
+    steps:
       - name: Download Terraform state file
         uses: actions/download-artifact@v4
         with:
