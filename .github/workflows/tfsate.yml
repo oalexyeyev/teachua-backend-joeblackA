@@ -6,8 +6,9 @@ on:
   workflow_dispatch:
 jobs:
   terraform:
-   steps:
-      - name: Download Terraform state file
+    name: Terraform Apply
+    runs-on: ubuntu-latest
+       steps:      - name: Download Terraform state file
         uses: actions/download-artifact@v4
         with:
           name: terraform-state
