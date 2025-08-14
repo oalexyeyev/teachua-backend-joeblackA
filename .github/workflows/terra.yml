@@ -129,6 +129,8 @@ jobs:
           cd ansible 
           eval "$(ssh-agent -s)"
           ssh-add ~/.ssh/teachua-key.pem
+          ls
+          tree
           ansible-playbook -i terraform_inventory.py test-conection.yml
           ansible-playbook -i terraform_inventory.py install_squid.yml
           ansible-playbook -i terraform_inventory.py setenv.yml
