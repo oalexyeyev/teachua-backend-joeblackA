@@ -27,6 +27,7 @@ def main():
             "ansible_host": bastion_public_ip,
             "ansible_user": bastion_user,
             "ansible_ssh_private_key_file": ssh_key_path
+            "ansible_ssh_common_args": f"-o StrictHostKeyChecking=no"
         }
         inventory["all"].append(bastion_public_ip)
 
