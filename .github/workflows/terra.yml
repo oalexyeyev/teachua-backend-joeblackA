@@ -60,8 +60,8 @@ jobs:
      # AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
       #AWS_DEFAULT_REGION: ${{ secrets.AWS_DEFAULT_REGION }}
     #steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
+     # - name: Checkout code
+      #  uses: actions/checkout@v4
 
       - name: Install AWS CLI v2
         run: |
