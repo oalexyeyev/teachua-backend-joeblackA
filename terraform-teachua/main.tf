@@ -28,11 +28,26 @@ output "generated_db_password" {
 
 
 
+variable "aws_profile" {
+  type    = string
+  default = "terraform-user"
+}
+
+variable "assume_role" {
+  type    = bool
+  default = true
+}
+
 provider "aws" {
   region  = var.aws_region
-  #profile = var.aws_profile
-  assume_role {
-    role_arn = "arn:aws:iam::135424146100:role/TerraformExecutionRole"
+  profile = var.aws_profile
+
+  dynamic "assume_role" {
+    for_each = var.assume_role ? [1] : []
+    content {
+      role_arn     = "arn:aws:iam::135424146100:role/TerraformExecutionRole"
+      session_name = "local-terraform"
+    }
   }
 }
 
