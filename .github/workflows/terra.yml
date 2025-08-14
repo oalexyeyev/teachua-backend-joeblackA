@@ -77,16 +77,11 @@ jobs:
          mkdir -p ~/.ssh
          echo "${{ secrets.EC2_KEY }}" > ~/.ssh/teachua-key.pem
          chmod 600 ~/.ssh/teachua-key.pem
-         ls ~/.ssh/teachua-key.pem
-         ssh -i ~/.ssh/teachua-key.pem ec2-user@100.26.40.231 -o StrictHostKeyChecking=no
-         eval "$(ssh-agent -s)"
-         ssh-add ~/.ssh/teachua-key.pem
-
+        
       - name: Run Ansible playbook
         run: |
           cd ansible 
-          ls
           eval "$(ssh-agent -s)"
           ssh-add ~/.ssh/teachua-key.pem
-          ansible-playbook -i terraform_inventory.py test-conection.yml -vvv
+          ansible-playbook -i terraform_inventory.py test-conection.yml
 
