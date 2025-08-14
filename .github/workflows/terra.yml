@@ -45,9 +45,9 @@ jobs:
         run: |
           cd terraform-teachua
           terraform init \
-         -backend-config="bucket=teachua-terraform1" \
-         -backend-config="key=terraform.tfstate" \
-         -backend-config="region=us-east-1"
+            -backend-config="bucket=teachua-terraform1" \
+            -backend-config="key=terraform.tfstate" \
+            -backend-config="region=us-east-1"
 
       - name: Terraform Plan
         run: |
