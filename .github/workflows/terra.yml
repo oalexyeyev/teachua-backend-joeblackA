@@ -79,6 +79,8 @@ jobs:
          chmod 600 ~/.ssh/teachua-key.pem
          ls ~/.ssh/teachua-key.pem
          ssh -i ~/.ssh/teachua-key.pem ec2-user@100.26.40.231 -o StrictHostKeyChecking=no
+         eval "$(ssh-agent -s)"
+         ssh-add ~/.ssh/teachua-key.pem
 
       - name: Run Ansible playbook
         run: |
