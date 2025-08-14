@@ -37,7 +37,7 @@ def main():
             "ansible_host": backend_ip,
             "ansible_user": bastion_user,
             "ansible_ssh_private_key_file": ssh_key_path,
-            "ansible_ssh_common_args": f"-o ProxyJump={bastion_user}@{bastion_public_ip} -o ForwardAgent=yes",
+            "ansible_ssh_common_args": f"-o ProxyJump={bastion_user}@{bastion_public_ip} -o ForwardAgent=yes -o StrictHostKeyChecking=no",
             "bastion_private_ip": bastion_private_ip  # Передаємо приватний IP bastion як змінну
         }
         inventory["all"].append(backend_ip)
