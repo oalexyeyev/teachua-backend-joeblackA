@@ -58,6 +58,19 @@ jobs:
         run: |
           cd terraform-teachua
           terraform apply -auto-approve -var="key_pair_name=${{ secrets.KEY_PAIR_NAME }}" -var="assume_role=false" -var="aws_profile="
-        continue-on-error: true
+      
+      - name: Export Terraform inventory
+        run: |
+          cd terraform-teachua
+          terraform output -json > ../ansible/terraform_outputs.json
 
+    - name: Install Ansible
+      run: |
+        python -m pip install --upgrade pip
+        pip install ansible boto3 botocore
+
+    - name: Run Ansible playbook
+      run: |
+        cd ansible 
+        ansible-playbook -i terraform_inventory.py test-conection.yml
 
