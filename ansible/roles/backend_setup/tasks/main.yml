@@ -11,7 +11,7 @@
 - name: Копіювати dev.war на сервер
   become: true
   copy:
-    src: ../../../../../target/dev.war
+    src: dev.war
     dest: /opt/app/dev.war
     owner: root
     group: root
