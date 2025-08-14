@@ -46,10 +46,10 @@ jobs:
         uses: actions/download-artifact@v4
         with:
           name: dev-war
-          path: ./ansible/roles/backend_setup/files
+          path: ~/ansible/roles/backend_setup/files
 
       - name: Show files
-        run: ls -l ./ansible/roles/backend_setup/files   
+        run: ls -l ~/ansible/roles/backend_setup/files   
   
   #terraform:
    # name: Terraform Apply
