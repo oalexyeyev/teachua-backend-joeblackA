@@ -78,7 +78,7 @@ jobs:
          echo "${{ secrets.EC2_KEY }}" > ~/.ssh/teachua-key.pem
          chmod 600 ~/.ssh/teachua-key.pem
          ls ~/.ssh/teachua-key.pem
-         ssh -i ~/.ssh/teachua-key.pem ec2-user@100.26.40.231
+         ssh -i ~/.ssh/teachua-key.pem ec2-user@100.26.40.231 -o StrictHostKeyChecking=no
 
       - name: Run Ansible playbook
         run: |
