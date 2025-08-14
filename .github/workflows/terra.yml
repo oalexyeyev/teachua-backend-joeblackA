@@ -72,6 +72,11 @@ jobs:
         run: |
           python -m pip install --upgrade pip
           pip install ansible boto3 botocore
+      - name: Set up SSH key
+        run: |
+         mkdir -p ~/.ssh
+         echo "${{ secrets.EC2_KEY }}" > ~/.ssh/teachua-key.pem
+         chmod 600 ~/.ssh/teachua-key.pem
 
       - name: Run Ansible playbook
         run: |
