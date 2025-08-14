@@ -57,7 +57,7 @@ jobs:
       - name: Terraform Apply
         run: |
           cd terraform-teachua
-          terraform apply -auto-approve -var="key_pair_name=${{ secrets.KEY_PAIR_NAME }}" -var="assume_role=false"
+          terraform apply -auto-approve -var="key_pair_name=${{ secrets.KEY_PAIR_NAME }}" -var="assume_role=false" -var="aws_profile="
         continue-on-error: true
 
 
