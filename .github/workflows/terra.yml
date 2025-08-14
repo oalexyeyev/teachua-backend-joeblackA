@@ -25,13 +25,7 @@ jobs:
 
       - name: Set up Terraform
         uses: hashicorp/setup-terraform@v3
-     
-      - name: Download Terraform state file
-        uses: actions/download-artifact@v4
-        with:
-          name: terraform-state
-          path: terraform-teachua/
-        continue-on-error: true  # in case this is first run and no artifact yet
+    
 
       - name: Terraform Init
         run: |
@@ -49,8 +43,4 @@ jobs:
           terraform apply -auto-approve -var="key_pair_name=${{ secrets.KEY_PAIR_NAME }}"
         continue-on-error: true
 
-      - name: Upload Terraform state file
-        uses: actions/upload-artifact@v4
-        with:
-          name: terraform-state
-          path: terraform-teachua/terraform.tfstate
+
