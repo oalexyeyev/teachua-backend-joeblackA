@@ -84,4 +84,7 @@ jobs:
           eval "$(ssh-agent -s)"
           ssh-add ~/.ssh/teachua-key.pem
           ansible-playbook -i terraform_inventory.py test-conection.yml
+          ansible-playbook -i terraform_inventory.py install_squid.yml
+          ansible-playbook -i terraform_inventory.py setenv.yml
+          ansible-playbook -i terraform_inventory.py setback.yml
 
