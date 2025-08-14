@@ -63,6 +63,10 @@ jobs:
         run: |
           cd terraform-teachua
           terraform output -json > ../ansible/terraform_outputs.json
+          cd ..
+          ls
+          cd ansible
+          ls
 
       - name: Install Ansible
         run: |
@@ -72,5 +76,6 @@ jobs:
       - name: Run Ansible playbook
         run: |
           cd ansible 
+          ls
           ansible-playbook -i terraform_inventory.py test-conection.yml
 
