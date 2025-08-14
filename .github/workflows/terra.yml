@@ -52,7 +52,7 @@ jobs:
       - name: Terraform Plan
         run: |
           cd terraform-teachua
-          terraform plan  -var="key_pair_name=${{ secrets.KEY_PAIR_NAME }}" -var="assume_role=false"
+          terraform plan  -var="key_pair_name=${{ secrets.KEY_PAIR_NAME }}" -var="assume_role=false" -var="aws_profile="
 
       - name: Terraform Apply
         run: |
