@@ -126,6 +126,8 @@ jobs:
         
       - name: Run Ansible playbook
         run: |
+          ls
+          tree
           cd ansible 
           eval "$(ssh-agent -s)"
           ssh-add ~/.ssh/teachua-key.pem
