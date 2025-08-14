@@ -62,7 +62,7 @@ jobs:
       - name: Export Terraform inventory
         run: |
           cd terraform-teachua
-          terraform output -json > ../ansible/terraform_outputs.json
+          terraform output -json > ../ansible/terraform-outputs.json
           cd ..
           ls
           cd ansible
