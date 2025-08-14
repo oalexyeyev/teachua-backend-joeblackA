@@ -52,12 +52,12 @@ jobs:
       - name: Terraform Plan
         run: |
           cd terraform-teachua
-          terraform plan  -var="key_pair_name=${{ secrets.KEY_PAIR_NAME }}"
+          terraform plan  -var="key_pair_name=${{ secrets.KEY_PAIR_NAME }}" - -var="assume_role=false"
 
       - name: Terraform Apply
         run: |
           cd terraform-teachua
-          terraform apply -auto-approve -var="key_pair_name=${{ secrets.KEY_PAIR_NAME }}"
+          terraform apply -auto-approve -var="key_pair_name=${{ secrets.KEY_PAIR_NAME }}" -var="assume_role=false"
         continue-on-error: true
 
 
