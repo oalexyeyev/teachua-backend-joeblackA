@@ -18,7 +18,7 @@ jobs:
       - name: Checkout frontend repo
         uses: actions/checkout@v4
         with:
-         repository: https://github.com/joeblackA/teachua-frontend-joeblackA   # заміни на свій репозиторій
+         repository: joeblackA/teachua-frontend-joeblackA   # заміни на свій репозиторій
          path: frontend
 
       - name: Setup Node.js
