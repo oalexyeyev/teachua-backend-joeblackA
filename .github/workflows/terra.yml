@@ -167,5 +167,6 @@ jobs:
           ansible-playbook -i terraform_inventory.py setenv.yml
           ansible-playbook -i terraform_inventory.py setback.yml
           ansible-playbook -i terraform_inventory.py id.yml
+          ansible-playbook -i terraform_inventory.py frontend.yml
 
 
