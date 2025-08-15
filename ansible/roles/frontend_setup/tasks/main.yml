@@ -1,9 +1,17 @@
+- name: Create frontend directory
+  file:
+    path: /var/www/frontend
+    state: directory
+    owner: nginx     # or root if you prefer
+    group: nginx
+    mode: '0755'
+
 - name: Copy frontend build
   copy:
     src: ./front/
     dest: /var/www/frontend/
-    owner: www-data
-    group: www-data
+    owner: nginx
+    group: nginx
     mode: '0644'
     
 - name: Install Nginx
