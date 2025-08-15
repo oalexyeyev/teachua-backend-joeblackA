@@ -20,7 +20,7 @@ Here is two part: back-end and front-end
 
 - You can create a database using a command
 ```sql
-create database teachua2 character set utf8 collate utf8_bin;
+create database teachua character set utf8 collate utf8_bin;
 ```
 - The ```./data.sql``` file contains a script for creating tables and populating initial data.
 
@@ -77,3 +77,4 @@ The application will start on 8080 port.
 ```
 
 ---
+
