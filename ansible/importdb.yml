@@ -1,5 +1,5 @@
 ---
-- name: Retrieve RDS credentials via assume-role
+- name: Retrieve RDS credentials (local or CI)
   hosts: localhost
   gather_facts: no
   collections:
@@ -9,33 +9,43 @@
     region: "us-east-1"
     role_arn: "arn:aws:iam::135424146100:role/TerraformExecutionRole"
     profile: "terraform-user"
+
   tasks:
-    - name: Assume role to get temporary credentials
+    - name: Check if AWS creds already in ENV (CI case)
+      set_fact:
+        creds_in_env: >-
+          {{ lookup('env', 'AWS_ACCESS_KEY_ID') != '' and
+             lookup('env', 'AWS_SECRET_ACCESS_KEY') != '' }}
+
+    - name: Assume role to get temporary credentials (local case)
       amazon.aws.sts_assume_role:
         profile: "{{ profile }}"
         role_arn: "{{ role_arn }}"
         role_session_name: "mysession"
       register: assumed_role
+      when: not creds_in_env
 
-    - name: Lookup secret from AWS Secrets Manager using assumed creds
+    - name: Lookup secret from AWS Secrets Manager
       set_fact:
         db_secret: >-
-          {{ lookup('amazon.aws.aws_secret', secret_name,
-                    region=region,
-                    access_key=assumed_role.sts_creds.access_key,
-                    secret_key=assumed_role.sts_creds.secret_key,
-                    session_token=assumed_role.sts_creds.session_token) }}
+          {{ lookup(
+               'amazon.aws.aws_secret',
+               secret_name,
+               region=region,
+               access_key=(assumed_role.sts_creds.access_key if not creds_in_env else lookup('env', 'AWS_ACCESS_KEY_ID')),
+               secret_key=(assumed_role.sts_creds.secret_key if not creds_in_env else lookup('env', 'AWS_SECRET_ACCESS_KEY')),
+               session_token=(assumed_role.sts_creds.session_token if not creds_in_env else lookup('env', 'AWS_SESSION_TOKEN'))
+             )
+          }}
 
     - name: Debug DB secret content
       debug:
-       var: db_secret
+        var: db_secret
 
     - name: Save DB credentials for next play
       set_fact:
         db_user: "teachua_user"
-        db_pass: "{{ db_secret}}"
-        #db_host: "{{ database_endpoint }}"
-        #db_port: "3306"
+        db_pass: "{{ db_secret }}"
         db_name: "teachua"
 
 
@@ -48,22 +58,23 @@
     db_host: "{{ database_endpoint.split(':')[0] }}"
     db_port: "{{ database_endpoint.split(':')[1] }}"
     db_name: "{{ hostvars['localhost'].db_name }}"
+
   tasks:
     - name: Show DB host
       debug:
-       var: db_host
+        var: db_host
 
     - name: Show DB user
       debug:
-       var: db_user
+        var: db_user
 
     - name: Show DB password
       debug:
-       var: db_pass
+        var: db_pass
 
     - name: Show DB port
       debug:
-       var: db_port
+        var: db_port
 
     - name: Load schema
       community.mysql.mysql_db:
