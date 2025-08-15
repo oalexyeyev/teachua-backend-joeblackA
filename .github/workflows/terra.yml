@@ -139,5 +139,5 @@ jobs:
           ansible-playbook -i terraform_inventory.py install_squid.yml
           ansible-playbook -i terraform_inventory.py setenv.yml
           ansible-playbook -i terraform_inventory.py setback.yml
-          ansible-playbook -i terraform_inventory.py i&d.yml
+          ansible-playbook -i terraform_inventory.py id.yml
 
