@@ -1,3 +1,9 @@
+- name: Install Nginx
+  apt:
+    name: nginx
+    state: present
+    update_cache: yes
+
 - name: Create frontend directory
   file:
     path: /var/www/frontend
