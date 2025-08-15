@@ -87,6 +87,7 @@
     db_user: "{{ hostvars['localhost'].db_user }}"
     db_pass: "{{ hostvars['localhost'].db_pass }}"
     db_host: "{{ database_endpoint.split(':')[0] }}"
+    db_port: "{{ database_endpoint.split(':')[1] }}"
     db_name: "{{ hostvars['localhost'].db_name }}"
   tasks:
     - name: Ensure Java is installed
@@ -108,7 +109,7 @@
           ExecStart=/usr/bin/java {{ java_opts }} -jar {{ app_path }}/{{ war_file }}
           Restart=always
           RestartSec=5
-          Environment=SPRING_DATASOURCE_URL=jdbc:mysql://{{ db_host }}/{{ db_name }}
+          Environment=SPRING_DATASOURCE_URL=jdbc:mariadb://{{ db_host }}:{{ db_port }}/{{ db_name }}
           Environment=SPRING_DATASOURCE_USERNAME={{ db_user }}
           Environment=SPRING_DATASOURCE_PASSWORD={{ db_pass }}
           Environment=SPRING_DATASOURCE_DRIVER_CLASS_NAME=org.mariadb.jdbc.Driver
