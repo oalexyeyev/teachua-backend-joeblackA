@@ -76,7 +76,7 @@ jobs:
         uses: actions/download-artifact@v4
         with:
           name: frontend-dist
-          path: ./front  
+          path: ./ansible/front  
         
   
   #terraform:
