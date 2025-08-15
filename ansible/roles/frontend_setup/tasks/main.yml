@@ -1,8 +1,7 @@
-- name: Install Nginx
-  apt:
+- name: Install Nginx on RedHat/CentOS/Amazon Linux
+  ansible.builtin.yum:
     name: nginx
     state: present
-    update_cache: yes
 
 - name: Create frontend directory
   file:
