@@ -21,7 +21,7 @@
   become: true
   copy:
     src: ../data.sql
-    dest: /opt/app/data.sl
+    dest: /opt/app/data.sql
     owner: root
     group: root
     mode: '0644'
