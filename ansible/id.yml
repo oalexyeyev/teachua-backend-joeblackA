@@ -129,3 +129,4 @@
       systemd:
         name: backend
         state: restarted
+        daemon_reload: yes
