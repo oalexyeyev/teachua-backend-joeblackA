@@ -1,0 +1,41 @@
+- name: Copy frontend build
+  copy:
+    src: ./front/
+    dest: /var/www/frontend/
+    owner: www-data
+    group: www-data
+    mode: '0644'
+    
+- name: Install Nginx
+  apt:
+    name: nginx
+    state: present
+    update_cache: yes
+
+- name: Remove default Nginx config
+  file:
+    path: /etc/nginx/sites-enabled/default
+    state: absent
+
+- name: Configure Nginx reverse proxy
+  template:
+    src: nginx.conf.j2
+    dest: /etc/nginx/sites-available/frontend
+    mode: '0644'
+
+- name: Enable frontend site
+  file:
+    src: /etc/nginx/sites-available/frontend
+    dest: /etc/nginx/sites-enabled/frontend
+    state: link
+
+- name: Test Nginx config
+  command: nginx -t
+  register: nginx_test
+  changed_when: false
+
+- name: Reload Nginx
+  systemd:
+    name: nginx
+    state: restarted
+    enabled: yes
