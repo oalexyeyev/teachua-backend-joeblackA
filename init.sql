@@ -1,1 +1,2 @@
-create database teachua character set utf8 collate utf8_bin;
+DROP DATABASE IF EXISTS teachua;
+CREATE DATABASE teachua CHARACTER SET utf8 COLLATE utf8_bin;
