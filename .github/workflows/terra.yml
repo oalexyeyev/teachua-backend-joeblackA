@@ -14,6 +14,34 @@ jobs:
       AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
       AWS_DEFAULT_REGION: ${{ secrets.AWS_DEFAULT_REGION }}
     steps:
+
+      - name: Checkout frontend repo
+        uses: actions/checkout@v4
+        with:
+         repository: https://github.com/joeblackA/teachua-frontend-joeblackA   # заміни на свій репозиторій
+         path: frontend
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+         node-version: 16
+         cache: npm
+         cache-dependency-path: frontend/package-lock.json
+
+      - name: Install dependencies & build frontend
+        run: |
+         cd frontend
+         npm ci
+         npm run build
+
+      - name: Upload frontend build artifact
+        uses: actions/upload-artifact@v4
+        with:
+         name: frontend-dist
+         path: frontend/dist 
+
+
+    
       - name: Checkout code
         uses: actions/checkout@v4
 
@@ -140,4 +168,5 @@ jobs:
           ansible-playbook -i terraform_inventory.py setenv.yml
           ansible-playbook -i terraform_inventory.py setback.yml
           ansible-playbook -i terraform_inventory.py id.yml
+
 
