@@ -20,6 +20,7 @@ jobs:
         with:
          repository: joeblackA/teachua-frontend-joeblackA   # заміни на свій репозиторій
          path: frontend
+         ref: develop
 
       - name: Setup Node.js
         uses: actions/setup-node@v4
