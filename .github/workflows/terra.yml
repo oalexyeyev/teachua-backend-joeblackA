@@ -138,6 +138,6 @@ jobs:
           ansible-playbook -i terraform_inventory.py test-conection.yml
           ansible-playbook -i terraform_inventory.py install_squid.yml
           ansible-playbook -i terraform_inventory.py setenv.yml
-          ansible-playbook -i terraform_inventory.py setback.yml -vvv
-          ansible-playbook -i terraform_inventory.py importdb.yml -vvv
+          ansible-playbook -i terraform_inventory.py setback.yml
+          ansible-playbook -i terraform_inventory.py importdb.yml
 
