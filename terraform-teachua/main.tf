@@ -21,10 +21,10 @@ resource "random_password" "db_password" {
   override_special = "_%#^&*()-+=[]{}:;,.?~" # No / @ " or space
 }
 
-output "generated_db_password" {
-  value     = random_password.db_password.result
-  sensitive = true
-}
+#output "generated_db_password" {
+ # value     = random_password.db_password.result
+  #sensitive = true
+#}
 
 
 
