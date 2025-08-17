@@ -1,8 +1,8 @@
 name: full ci/cd one-by-one
 on:
-  push:
-   branches:
-    - feature/terraform-aws-without-nat
+#  push:
+ #  branches:
+  #  - feature/terraform-aws-without-nat
   workflow_dispatch:
 jobs:
   buildfrontend:
@@ -132,7 +132,7 @@ jobs:
    name: ansible playbook for front
    runs-on: ubuntu-22.04
    needs:
-   - buildbackend
+   - buildfrontend
    - terraform
    env:
      AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
@@ -191,9 +191,9 @@ jobs:
          ansible-playbook -i terraform_inventory.py frontend.yml
          #ansible-playbook -i terraform_inventory.py test-conection.yml
          #ansible-playbook -i terraform_inventory.py install_squid.yml
-         ansible-playbook -i terraform_inventory.py setenv.yml
-         ansible-playbook -i terraform_inventory.py setback.yml
-         ansible-playbook -i terraform_inventory.py id.yml
+         #ansible-playbook -i terraform_inventory.py setenv.yml
+         #ansible-playbook -i terraform_inventory.py setback.yml
+         #ansible-playbook -i terraform_inventory.py id.yml
   
   AnsibleB:
    name: ansible playbook for back
