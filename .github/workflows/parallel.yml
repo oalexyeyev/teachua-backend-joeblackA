@@ -130,6 +130,10 @@ jobs:
   Ansible:
    name: ansible playbook
    runs-on: ubuntu-22.04
+   needs:
+   - buildbackend
+   - buildfrontend
+   - terraform
    env:
      AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
      AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
