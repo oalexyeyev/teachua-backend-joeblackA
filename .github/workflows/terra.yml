@@ -1,4 +1,4 @@
-name: terra part
+name: full ci/cd one-by-one
 on:
   #push:
    #branches:
