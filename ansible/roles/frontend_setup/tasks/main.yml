@@ -25,6 +25,13 @@
     group: nginx
     mode: '0644'
 
+- name: Set permissions for frontend folder
+  ansible.builtin.file:
+    path: /var/www/frontend/
+    owner: nginx
+    group: nginx
+    mode: '0755'
+
 - name: Remove default Nginx config
   file:
     path: /etc/nginx/sites-enabled/default
