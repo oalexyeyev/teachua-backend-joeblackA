@@ -127,25 +127,76 @@ jobs:
       with:
        name: terraform-output
        path: terraform-teachua/terraform-output.json
-  setup_ansible:
-    runs-on: ubuntu-22.04
-    outputs:
-      ansible-path: ./ansible_env
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
+ 
+  AnsibleF:
+   name: ansible playbook for front
+   runs-on: ubuntu-22.04
+   needs:
+   - buildbackend
+   - terraform
+   env:
+     AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+     AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+     AWS_DEFAULT_REGION: ${{ secrets.AWS_DEFAULT_REGION }}
+   steps:
+
+      - name: Configure AWS to assume role
+        uses: aws-actions/configure-aws-credentials@v2
+        with:
+          role-to-assume: arn:aws:iam::135424146100:role/TerraformExecutionRole
+          role-session-name: github-actions
+          role-skip-session-tagging: true
+          role-duration-seconds: 900   
+          aws-region: ${{ secrets.AWS_DEFAULT_REGION }}
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+      
+      - uses: actions/checkout@v4
+      - name: Download frontend artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: frontend-dist
+          path: ./ansible/front  
+      
+      - name: Download WAR Artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: dev-war
+          path: ./ansible/
+      
+      - name: Download Terraform outputs
+        uses: actions/download-artifact@v4
+        with:
+          name: terraform-output
+          path: ./ansible/
 
       - name: Install Ansible
         run: |
-          python3 -m pip install --upgrade pip
-          pip install --target=./ansible_env ansible boto3 botocore
-      - name: Upload Ansible environment
-        uses: actions/upload-artifact@v4
-        with:
-          name: ansible-env
-          path: ./ansible_env
-  Ansible:
-   name: ansible playbook
+         python -m pip install --upgrade pip
+         pip install ansible boto3 botocore
+      - name: Set up SSH key
+        run: |
+         mkdir -p ~/.ssh
+         echo "${{ secrets.EC2_KEY }}" > ~/.ssh/teachua-key.pem
+         chmod 600 ~/.ssh/teachua-key.pem
+        
+      - name: Run Ansible playbook
+        run: |
+         #cp target/dev.war ansible/dev.war
+         cd ansible 
+         eval "$(ssh-agent -s)"
+         ssh-add ~/.ssh/teachua-key.pem
+         ls
+         tree
+         ansible-playbook -i terraform_inventory.py frontend.yml
+         #ansible-playbook -i terraform_inventory.py test-conection.yml
+         #ansible-playbook -i terraform_inventory.py install_squid.yml
+         ansible-playbook -i terraform_inventory.py setenv.yml
+         ansible-playbook -i terraform_inventory.py setback.yml
+         ansible-playbook -i terraform_inventory.py id.yml
+  
+  AnsibleB:
+   name: ansible playbook for back
    runs-on: ubuntu-22.04
    needs:
    - buildbackend
@@ -205,12 +256,16 @@ jobs:
          ssh-add ~/.ssh/teachua-key.pem
          ls
          tree
-         ansible-playbook -i terraform_inventory.py frontend.yml
-         ansible-playbook -i terraform_inventory.py test-conection.yml
+         #ansible-playbook -i terraform_inventory.py frontend.yml
+         #ansible-playbook -i terraform_inventory.py test-conection.yml
          ansible-playbook -i terraform_inventory.py install_squid.yml
          ansible-playbook -i terraform_inventory.py setenv.yml
          ansible-playbook -i terraform_inventory.py setback.yml
          ansible-playbook -i terraform_inventory.py id.yml
+          
+
+
+
           
 
 
