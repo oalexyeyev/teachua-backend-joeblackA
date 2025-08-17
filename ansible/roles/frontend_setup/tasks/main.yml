@@ -11,14 +11,11 @@
     group: nginx
     mode: '0755'
 
-#- name: Copy frontend build
- # copy:
-  #  src: ./front/
-   # dest: /var/www/frontend/
-    #owner: nginx
-    #group: nginx
-    #mode: '0644'
-
+- name: Copy frontend build
+  copy:
+    src: frontend-build.tar.gz
+    dest: frontend-build.tar.gz
+    
 - name: Unpack frontend build
   ansible.builtin.unarchive:
     src: frontend-build.tar.gz
@@ -26,7 +23,7 @@
     remote_src: yes   
     owner: nginx
     group: nginx
-    mode: '0655'
+    mode: '0644'
 
 - name: Remove default Nginx config
   file:
