@@ -140,6 +140,7 @@ jobs:
      AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
      AWS_DEFAULT_REGION: ${{ secrets.AWS_DEFAULT_REGION }}
    steps:
+      - uses: actions/checkout@v4
       - name: Download frontend artifact
         uses: actions/download-artifact@v4
         with:
@@ -150,13 +151,13 @@ jobs:
         uses: actions/download-artifact@v4
         with:
           name: dev-war
-          path: ./ansible/dev.war
+          path: ./ansible/
       
       - name: Download Terraform outputs
         uses: actions/download-artifact@v4
         with:
           name: terraform-output
-          path: ./ansible/terraform-output.json
+          path: ./ansible/
 
       - name: Install Ansible
         run: |
