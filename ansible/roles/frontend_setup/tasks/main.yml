@@ -31,6 +31,7 @@
     owner: nginx
     group: nginx
     mode: '0755'
+    recurse: yes
 
 - name: Remove default Nginx config
   file:
