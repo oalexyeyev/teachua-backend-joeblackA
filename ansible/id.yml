@@ -96,6 +96,18 @@
         state: present
       when: ansible_os_family == "Debian"
 
+
+ - name: Create systemd env for backend
+      copy:
+        dest: /etc/backend.env
+        content: |
+          SPRING_DATASOURCE_URL=jdbc:mariadb://{{ db_host }}:{{ db_port }}/{{ db_name }}
+          SPRING_DATASOURCE_USERNAME={{ db_user }}
+          SPRING_DATASOURCE_PASSWORD={{ db_pass }}
+          SPRING_DATASOURCE_DRIVER_CLASS_NAME=org.mariadb.jdbc.Driver
+
+
+
     - name: Create systemd service for backend
       copy:
         dest: /etc/systemd/system/backend.service
@@ -109,10 +121,7 @@
           ExecStart=/usr/bin/java {{ java_opts }} -jar {{ app_path }}/{{ war_file }}
           Restart=always
           RestartSec=5
-          Environment="SPRING_DATASOURCE_URL=jdbc:mariadb://{{ db_host }}:{{ db_port }}/{{ db_name }}"
-          Environment="SPRING_DATASOURCE_USERNAME={{ db_user }}"
-          Environment="SPRING_DATASOURCE_PASSWORD={{ db_pass }}"
-          Environment="SPRING_DATASOURCE_DRIVER_CLASS_NAME=org.mariadb.jdbc.Driver"
+          EnvironmentFile=/etc/backend.env 
 
           [Install]
           WantedBy=multi-user.target
