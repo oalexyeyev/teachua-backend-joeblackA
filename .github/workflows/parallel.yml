@@ -127,7 +127,23 @@ jobs:
       with:
        name: terraform-output
        path: terraform-teachua/terraform-output.json
-  
+  setup_ansible:
+    runs-on: ubuntu-22.04
+    outputs:
+      ansible-path: ./ansible_env
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Install Ansible
+        run: |
+          python3 -m pip install --upgrade pip
+          pip install --target=./ansible_env ansible boto3 botocore
+      - name: Upload Ansible environment
+        uses: actions/upload-artifact@v4
+        with:
+          name: ansible-env
+          path: ./ansible_env
   Ansible:
    name: ansible playbook
    runs-on: ubuntu-22.04
