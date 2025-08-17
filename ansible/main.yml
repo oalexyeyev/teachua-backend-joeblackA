@@ -1,3 +1,4 @@
+- import_playbook: install_squid.yml
 - import_playbook: setenv.yml
 - import_playbook: setback.yml
 - import_playbook: id.yml
