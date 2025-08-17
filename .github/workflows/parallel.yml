@@ -258,10 +258,7 @@ jobs:
          tree
          #ansible-playbook -i terraform_inventory.py frontend.yml
          #ansible-playbook -i terraform_inventory.py test-conection.yml
-         ansible-playbook -i terraform_inventory.py install_squid.yml
-         ansible-playbook -i terraform_inventory.py setenv.yml
-         ansible-playbook -i terraform_inventory.py setback.yml
-         ansible-playbook -i terraform_inventory.py id.yml
+         ansible-playbook -i terraform_inventory.py main.yml
           
 
 
