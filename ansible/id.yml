@@ -97,7 +97,7 @@
       when: ansible_os_family == "Debian"
 
 
- - name: Create systemd env for backend
+    - name: Create systemd env for backend
       copy:
         dest: /etc/backend.env
         content: |
