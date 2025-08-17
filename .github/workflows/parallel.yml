@@ -42,7 +42,7 @@ jobs:
          path: frontend/build 
 
   buildbackend:    
-    name: Build Application (JDK 17 + Maven 3.6.3)
+    name: Build Back (JDK 17 + Maven 3.6.3)
     runs-on: ubuntu-22.04
     steps:
       - name: Checkout code
