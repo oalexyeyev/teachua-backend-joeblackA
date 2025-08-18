@@ -1,3 +1,4 @@
+#Chatgpt example creating role in aws
 #!/bin/bash
 
 set -euo pipefail
