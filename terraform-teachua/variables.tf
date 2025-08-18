@@ -38,13 +38,18 @@ variable "bastion_allowed_cidr" {
   description = "CIDR для доступу до Bastion SSH"
 }
 
+variable "assume_role_arn" {
+  type      = string
+  sensitive = true
+}
+
 #variable "gcp_project" {
- # type = string
+# type = string
 #}
 
 #variable "gcp_region" {
- # type    = string
-  #default = "us-central1"
+# type    = string
+#default = "us-central1"
 #}
 
 variable "aws_region" {
@@ -53,6 +58,6 @@ variable "aws_region" {
 }
 
 #variable "gcp_credentials_file" {
- # description = "Path to the GCP service account key file"
-  #type        = string
+# description = "Path to the GCP service account key file"
+#type        = string
 #}

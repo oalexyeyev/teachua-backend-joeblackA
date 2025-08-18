@@ -10,12 +10,12 @@ terraform {
 module "network" {
   source = "./modules/network"
 
-  vpc_cidr            = "10.0.0.0/16"
-  public_subnet_cidr  = "10.0.1.0/24"
-  private_subnet_cidr = "10.0.2.0/24"
-  aws_az              = var.aws_az # added
-  private_subnet_cidr_2 = "10.0.3.0/24"
-  aws_az_2            = var.aws_az_2
+  vpc_cidr             = var.vpc_cidr
+  public_subnet_cidr   = var.public_subnet_cidr
+  private_subnet_cidr  = var.private_subnet_cidr
+  private_subnet_cidr_2 = var.private_subnet_cidr_2
+  aws_az               = var.aws_az
+  aws_az_2             = var.aws_az_2
 }
 
 module "security_groups" {
@@ -27,12 +27,21 @@ module "security_groups" {
 
 module "instances" {
   source = "./modules/instances"
-
-  key_pair_name     = var.key_pair_name
+ # Bastion
+  bastion_ami           = var.bastion_ami
+  bastion_instance_type = var.bastion_instance_type
   bastion_sg_id     = module.security_groups.bastion_sg_id
+
+  # Backend
+  backend_ami           = var.backend_ami
+  backend_instance_type = var.backend_instance_type
   backend_sg_id     = module.security_groups.backend_sg_id
+
+  # Shared
   public_subnet_id  = module.network.public_subnet_id
   private_subnet_id = module.network.private_subnet_id
+
+  key_pair_name     = var.key_pair_name
 }
 
 module "secrets_manager" {

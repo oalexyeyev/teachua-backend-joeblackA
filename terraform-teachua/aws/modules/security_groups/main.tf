@@ -1,26 +1,28 @@
 resource "aws_security_group" "bastion" {
   name        = "bastion-sg"
-  description = "Allow SSH from bastion CIDR"
+  description = "Allow SSH and HTTP access to bastion host"
   vpc_id      = var.vpc_id
 
+  # SSH from allowed CIDR
   ingress {
-    description      = "SSH from bastion CIDR"
-    from_port        = 22
-    to_port          = 22
-    protocol         = "tcp"
-    cidr_blocks      = [var.bastion_cidr]
+    description = "SSH from bastion CIDR"
+    from_port   = var.ssh_port
+    to_port     = var.ssh_port
+    protocol    = "tcp"
+    cidr_blocks = [var.bastion_cidr]
   }
 
+  # Squid proxy from backend
   ingress {
-    description       = "Squid proxy from backend"
-    from_port         = 3128
-    to_port           = 3128
-    protocol          = "tcp"
-    cidr_blocks      = ["10.0.0.0/16"]
+    description = "Squid proxy from backend"
+    from_port   = var.squid_port
+    to_port     = var.squid_port
+    protocol    = "tcp"
+    cidr_blocks = [var.backend_cidr]
   }
 
-
-ingress {
+  # HTTP from all
+  ingress {
     description = "HTTP from all"
     from_port   = 80
     to_port     = 80
@@ -28,7 +30,7 @@ ingress {
     cidr_blocks = ["0.0.0.0/0"]
   }
 
-
+  # Allow all outbound
   egress {
     from_port   = 0
     to_port     = 0
@@ -39,25 +41,27 @@ ingress {
 
 resource "aws_security_group" "backend" {
   name        = "backend-sg"
-  description = "Allow SSH from Bastion SG"
+  description = "Allow SSH and app traffic from Bastion SG"
   vpc_id      = var.vpc_id
 
+  # SSH from bastion
   ingress {
-    description                   = "SSH from bastion sg"
-    from_port                   = 22
-    to_port                     = 22
-    protocol                    = "tcp"
-    security_groups             = [aws_security_group.bastion.id]
-  }
-  
-# App port 8080 від Bastion
-  ingress {
-    description      = "App port 8080 from Bastion"
-    from_port        = 8080
-    to_port          = 8080
+    description      = "SSH from bastion SG"
+    from_port        = var.ssh_port
+    to_port          = var.ssh_port
     protocol         = "tcp"
     security_groups  = [aws_security_group.bastion.id]
   }
+
+  # App port from bastion
+  ingress {
+    description      = "App port from Bastion"
+    from_port        = var.app_port
+    to_port          = var.app_port
+    protocol         = "tcp"
+    security_groups  = [aws_security_group.bastion.id]
+  }
+
   egress {
     from_port   = 0
     to_port     = 0
@@ -68,15 +72,15 @@ resource "aws_security_group" "backend" {
 
 resource "aws_security_group" "db" {
   name        = "db-sg"
-  description = "Allow MariaDB from backend SG"
+  description = "Allow database traffic from backend SG"
   vpc_id      = var.vpc_id
 
   ingress {
-    description                   = "MariaDB from backend sg"
-    from_port                   = 3306
-    to_port                     = 3306
-    protocol                    = "tcp"
-    security_groups             = [aws_security_group.backend.id]
+    description      = "Database access from backend SG"
+    from_port        = var.db_port
+    to_port          = var.db_port
+    protocol         = "tcp"
+    security_groups  = [aws_security_group.backend.id]
   }
 
   egress {

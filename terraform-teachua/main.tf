@@ -16,14 +16,14 @@ terraform {
 }
 
 resource "random_password" "db_password" {
-  length  = 16
-  special = true
+  length           = 16
+  special          = true
   override_special = "_%#^&*()-+=[]{}:;,.?~" # No / @ " or space
 }
 
 #output "generated_db_password" {
- # value     = random_password.db_password.result
-  #sensitive = true
+# value     = random_password.db_password.result
+#sensitive = true
 #}
 
 
@@ -45,7 +45,7 @@ provider "aws" {
   dynamic "assume_role" {
     for_each = var.assume_role ? [1] : []
     content {
-      role_arn     = "arn:aws:iam::135424146100:role/TerraformExecutionRole"
+      role_arn     = var.assume_role_arn
       session_name = "local-terraform"
     }
   }
