@@ -2,4 +2,5 @@
 - import_playbook: setenv.yml
 - import_playbook: setback.yml
 - import_playbook: id.yml
+- import_playbook: nodeexporter.yml
          
