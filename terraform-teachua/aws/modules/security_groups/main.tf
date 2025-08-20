@@ -26,7 +26,7 @@ resource "aws_security_group" "bastion" {
     from_port       = var.node_exporter_port
     to_port         = var.node_exporter_port
     protocol        = "tcp"
-   cidr_blocks = [var.backend_cidr]
+   cidr_blocks = ["0.0.0.0/0"]
   }
   # Prometheus
   ingress {
