@@ -1,0 +1,126 @@
+---
+- name: Setup Monitoring on Bastion
+  hosts: bastion
+  become: yes
+  vars:
+    node_exporter_port: 9100
+    prometheus_port: 9090
+    grafana_port: 3000
+    backendip: "{{ backend_ip }}"  # Prometheus scrape target
+    bastionip: "{{ ansible_host }}"
+    grafana_admin_user: admin
+    grafana_admin_password: admin
+
+  tasks:
+    - name: Copy Bastion monitoring setup script
+      copy:
+        dest: /home/ec2-user/setup_monitoring.sh
+        content: |
+          #!/bin/bash
+          # Update packages
+          yum update -y
+
+          # Install Docker
+          amazon-linux-extras enable docker
+          yum install -y docker
+          systemctl start docker
+          systemctl enable docker
+          usermod -aG docker ec2-user
+
+          # Install Docker Compose
+          curl -L "https://github.com/docker/compose/releases/download/v2.29.2/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose
+          chmod +x /usr/local/bin/docker-compose
+
+          # Create monitoring directory for Grafana provisioning
+          mkdir -p /home/ec2-user/grafana/provisioning/datasources
+          mkdir -p /home/ec2-user/grafana/provisioning/dashboards
+          mkdir -p /home/ec2-user/grafana/dashboards
+
+          # Create Prometheus config
+          cat <<EOD > /home/ec2-user/prometheus.yml
+          global:
+            scrape_interval: 15s
+          scrape_configs:
+            - job_name: 'bastion-node'
+              static_configs:
+                - targets: ['{{ bastionip }}:{{ node_exporter_port }}']
+            - job_name: 'backend-node'
+              static_configs:
+                - targets: ['{{ backendip }}:{{ node_exporter_port }}']
+          EOD
+
+          # Create Grafana datasource provisioning
+          cat <<EOD > /home/ec2-user/grafana/provisioning/datasources/datasource.yml
+          apiVersion: 1
+          datasources:
+            - name: Prometheus
+              type: prometheus
+              access: proxy
+              url: http://prometheus:{{ prometheus_port }}
+              isDefault: true
+          EOD
+
+          # Create Grafana dashboard provisioning
+          cat <<EOD > /home/ec2-user/grafana/provisioning/dashboards/dashboard.yml
+          apiVersion: 1
+          providers:
+            - name: 'Node Exporter'
+              orgId: 1
+              folder: ''
+              type: file
+              options:
+                path: /var/lib/grafana/dashboards
+          EOD
+
+          # Download Node Exporter Full dashboard JSON (ID 1860)
+          curl -L "https://grafana.com/api/dashboards/1860/revisions/1/download" -o /home/ec2-user/grafana/dashboards/node_exporter_full.json
+
+          # Create docker-compose file for monitoring stack
+          cat <<EOD > /home/ec2-user/docker-compose.monitoring.yml
+          version: "3.8"
+          services:
+            node-exporter:
+              image: prom/node-exporter:latest
+              container_name: node-exporter
+              restart: unless-stopped
+              network_mode: "host"
+              pid: "host"
+              volumes:
+                - /:/host:ro,rslave
+              command:
+                - '--path.rootfs=/host'
+              ports:
+                - "${NODE_EXPORTER_PORT:-{{ node_exporter_port }}}:9100"
+
+            prometheus:
+              image: prom/prometheus:latest
+              container_name: prometheus
+              restart: unless-stopped
+              ports:
+                - "${PROMETHEUS_PORT:-{{ prometheus_port }}}:9090"
+              volumes:
+                - /home/ec2-user/prometheus.yml:/etc/prometheus/prometheus.yml
+
+            grafana:
+              image: grafana/grafana:latest
+              container_name: grafana
+              restart: unless-stopped
+              ports:
+                - "${GRAFANA_PORT:-{{ grafana_port }}}:3000"
+              volumes:
+                - /home/ec2-user/grafana/provisioning:/etc/grafana/provisioning
+                - /home/ec2-user/grafana/dashboards:/var/lib/grafana/dashboards
+              environment:
+                GF_SECURITY_ADMIN_USER: {{ grafana_admin_user }}
+                GF_SECURITY_ADMIN_PASSWORD: {{ grafana_admin_password }}
+                GF_USERS_ALLOW_SIGN_UP: "false"
+          EOD
+
+          # Run all monitoring services
+          NODE_EXPORTER_PORT={{ node_exporter_port }} PROMETHEUS_PORT={{ prometheus_port }} GRAFANA_PORT={{ grafana_port }} /usr/local/bin/docker-compose -f /home/ec2-user/docker-compose.monitoring.yml up -d
+        mode: '0755'
+
+    - name: Execute Bastion monitoring setup script
+      shell: /home/ec2-user/setup_monitoring.sh
+      args:
+        executable: /bin/bash

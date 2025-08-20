@@ -38,3 +38,15 @@ variable "backend_cidr" {
   description = "CIDR of backend network for Squid or internal traffic"
   default     = "10.0.0.0/16"
 }
+
+variable "prometheus_port" {
+  default = 9090
+}
+
+variable "grafana_port" {
+  default = 3000
+}
+
+variable "node_exporter_port" {
+  default = 9100
+}

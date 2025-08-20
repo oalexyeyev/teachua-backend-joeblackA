@@ -41,7 +41,6 @@ variable "bastion_allowed_cidr" {
 variable "assume_role_arn" {
   type      = string
   sensitive = true
-  default     = null
 }
 
 #variable "gcp_project" {

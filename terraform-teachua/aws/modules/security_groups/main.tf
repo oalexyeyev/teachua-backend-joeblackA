@@ -20,6 +20,31 @@ resource "aws_security_group" "bastion" {
     protocol    = "tcp"
     cidr_blocks = [var.backend_cidr]
   }
+   # Node Exporter
+  ingress {
+    description     = "Node Exporter from Bastion SG"
+    from_port       = var.node_exporter_port
+    to_port         = var.node_exporter_port
+    protocol        = "tcp"
+   cidr_blocks = [var.backend_cidr]
+  }
+  # Prometheus
+  ingress {
+    description = "Prometheus UI"
+    from_port   = var.prometheus_port
+    to_port     = var.prometheus_port
+    protocol    = "tcp"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+
+  # Grafana
+  ingress {
+    description = "Grafana UI"
+    from_port   = var.grafana_port
+    to_port     = var.grafana_port
+    protocol    = "tcp"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
 
   # HTTP from all
   ingress {
@@ -62,7 +87,16 @@ resource "aws_security_group" "backend" {
     security_groups  = [aws_security_group.bastion.id]
   }
 
-  egress {
+   # Node Exporter
+  ingress {
+    description     = "Node Exporter from Bastion SG"
+    from_port       = var.node_exporter_port
+    to_port         = var.node_exporter_port
+    protocol        = "tcp"
+    security_groups = [aws_security_group.bastion.id]
+  }
+ 
+ egress {
     from_port   = 0
     to_port     = 0
     protocol    = "-1"
