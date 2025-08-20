@@ -12,11 +12,12 @@
     grafana_admin_password: admin
 
   tasks:
+
     - name: Install Docker
       shell: |
         yum update -y
         amazon-linux-extras enable docker
-        yum install -y docker
+        yum install -y docker jq curl
         systemctl start docker
         systemctl enable docker
         usermod -aG docker ec2-user
@@ -24,10 +25,11 @@
         executable: /bin/bash
 
     - name: Install Docker Compose
-      get_url:
-        url: "https://github.com/docker/compose/releases/download/v2.29.2/docker-compose-$(uname -s)-$(uname -m)"
-        dest: /usr/local/bin/docker-compose
-        mode: '0755'
+      shell: |
+        curl -L "https://github.com/docker/compose/releases/download/v2.29.2/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose
+        chmod +x /usr/local/bin/docker-compose
+      args:
+        executable: /bin/bash
 
     - name: Create directories for Grafana and Prometheus
       file:
@@ -39,7 +41,7 @@
         - /home/ec2-user/grafana/provisioning/dashboards
         - /home/ec2-user/grafana/dashboards
 
-    - name: Create Prometheus config
+    - name: Create Prometheus configuration
       copy:
         dest: /home/ec2-user/prometheus.yml
         content: |
@@ -78,18 +80,12 @@
               options:
                 path: /var/lib/grafana/dashboards
 
-    - name: Download Node Exporter Full dashboard JSON (ID 1860)
+    - name: Download Node Exporter Full dashboard JSON
       get_url:
-        url: "https://grafana.com/api/dashboards/1860/revisions/1/download"
+        url: "https://grafana.com/api/dashboards/1860/revisions/41/download"
         dest: /home/ec2-user/grafana/dashboards/node_exporter_full.json
 
-    - name: Fix datasource UID in Node Exporter dashboard
-      replace:
-        path: /home/ec2-user/grafana/dashboards/node_exporter_full.json
-        regexp: '"uid": "\\$\\{DS_LOCALHOST\\}"'
-        replace: '"Prometheus"'
-
-    - name: Create docker-compose file for monitoring stack
+    - name: Create Docker Compose file for monitoring stack
       copy:
         dest: /home/ec2-user/docker-compose.monitoring.yml
         content: |
