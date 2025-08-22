@@ -1,0 +1,9 @@
+---
+- name: Додати налаштування проксі в /etc/environment
+  become: true
+  template:
+    src: environment.j2
+    dest: /etc/environment
+    owner: root
+    group: root
+    mode: '0644'

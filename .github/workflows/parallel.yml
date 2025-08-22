@@ -1,0 +1,268 @@
+name: full ci/cd one-by-one
+on:
+  push:
+   branches:
+    - feature/terraform-aws-without-nat
+  workflow_dispatch:
+jobs:
+  buildfrontend:
+    name: Build React JS + nodejs 16 version.
+    runs-on: ubuntu-22.04
+    #steps:
+    env:
+      AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+      AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+      AWS_DEFAULT_REGION: ${{ secrets.AWS_DEFAULT_REGION }}
+    steps:
+
+      - name: Checkout frontend repo
+        uses: actions/checkout@v4
+        with:
+         repository: joeblackA/teachua-frontend-joeblackA   # заміни на свій репозиторій
+         path: frontend
+         ref: develop
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+         node-version: 16
+         cache: npm
+         cache-dependency-path: frontend/package-lock.json
+
+      - name: Install dependencies & build frontend
+        run: |
+         cd frontend
+         npm install
+         CI=false npm run build
+
+      - name: Upload frontend build artifact
+        uses: actions/upload-artifact@v4
+        with:
+         name: frontend-dist
+         path: frontend/build 
+
+  buildbackend:    
+    name: Build Back (JDK 17 + Maven 3.6.3)
+    runs-on: ubuntu-22.04
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Java 17
+        uses: actions/setup-java@v4
+        with:
+          java-version: '17'
+          distribution: 'temurin'
+
+      - name: Install Maven 3.6.3
+        run: |
+          MAVEN_VERSION=3.6.3
+          wget https://archive.apache.org/dist/maven/maven-3/$MAVEN_VERSION/binaries/apache-maven-$MAVEN_VERSION-bin.tar.gz
+          tar xzf apache-maven-$MAVEN_VERSION-bin.tar.gz
+          sudo mv apache-maven-$MAVEN_VERSION /opt/maven
+          echo "/opt/maven/bin" >> $GITHUB_PATH
+
+    
+      - name: Build with Maven
+        run: mvn clean package -DskipTests
+
+      - name: Upload JAR Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: dev-war
+          path: target/dev.war
+      
+              
+  terraform:
+   name: Terraform
+   runs-on: ubuntu-22.04
+   env:
+     AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+     AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+     AWS_DEFAULT_REGION: ${{ secrets.AWS_DEFAULT_REGION }}
+   steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Configure AWS to assume role
+      uses: aws-actions/configure-aws-credentials@v2
+      with:
+          role-to-assume: ${{ secrets.AWS_ASSUME_ROLE_ARN }}
+          role-session-name: github-actions
+          role-skip-session-tagging: true
+          role-duration-seconds: 900   
+          aws-region: ${{ secrets.AWS_DEFAULT_REGION }}
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+
+    - name: Set up Terraform
+      uses: hashicorp/setup-terraform@v3
+    
+
+    - name: Terraform Init
+      run: |
+       cd terraform-teachua
+       terraform init \
+             -backend-config="profile=" \
+             -backend-config="bucket=teachua-terraform1" \
+             -backend-config="key=terraform.tfstate" \
+             -backend-config="region=us-east-1"
+    - name: Terraform Plan
+      run: |
+       cd terraform-teachua
+       terraform plan  -var="key_pair_name=${{ secrets.KEY_PAIR_NAME }}" -var="assume_role=false" -var="aws_profile="
+
+    - name: Terraform Apply
+      run: |
+       cd terraform-teachua
+       terraform apply -auto-approve -var="key_pair_name=${{ secrets.KEY_PAIR_NAME }}" -var="assume_role=false" -var="aws_profile="
+      
+    - name: Export Terraform inventory
+      run: |
+       cd terraform-teachua
+       terraform output -json > terraform-output.json
+
+    - name: Upload Terraform outputs
+      uses: actions/upload-artifact@v4
+      with:
+       name: terraform-output
+       path: terraform-teachua/terraform-output.json
+ 
+  AnsibleF:
+   name: ansible playbook for front
+   runs-on: ubuntu-22.04
+   needs:
+   - buildfrontend
+   - terraform
+   env:
+     AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+     AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+     AWS_DEFAULT_REGION: ${{ secrets.AWS_DEFAULT_REGION }}
+   steps:
+
+      - name: Configure AWS to assume role
+        uses: aws-actions/configure-aws-credentials@v2
+        with:
+          role-to-assume: ${{ secrets.AWS_ASSUME_ROLE_ARN }}
+          role-session-name: github-actions
+          role-skip-session-tagging: true
+          role-duration-seconds: 900   
+          aws-region: ${{ secrets.AWS_DEFAULT_REGION }}
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+      
+      - uses: actions/checkout@v4
+      - name: Download frontend artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: frontend-dist
+          path: ./ansible/front  
+      
+      - name: Archive frontend build
+        run: |
+         cd ./ansible/front
+         tar -czf ../frontend-build.tar.gz .
+      
+      - name: Download Terraform outputs
+        uses: actions/download-artifact@v4
+        with:
+          name: terraform-output
+          path: ./ansible/
+
+      - name: Install Ansible
+        run: |
+         python -m pip install --upgrade pip
+         pip install ansible boto3 botocore
+      - name: Set up SSH key
+        run: |
+         mkdir -p ~/.ssh
+         echo "${{ secrets.EC2_KEY }}" > ~/.ssh/teachua-key.pem
+         chmod 600 ~/.ssh/teachua-key.pem
+        
+      - name: Run Ansible playbook
+        run: |
+         tree
+         #cp target/dev.war ansible/dev.war
+         cd ansible 
+         eval "$(ssh-agent -s)"
+         ssh-add ~/.ssh/teachua-key.pem
+         ls
+         tree
+         ansible-playbook -i terraform_inventory.py frontend.yml
+         ansible-playbook -i terraform_inventory.py bastmon.yml
+         #ansible-playbook -i terraform_inventory.py install_squid.yml
+         #ansible-playbook -i terraform_inventory.py setenv.yml
+         #ansible-playbook -i terraform_inventory.py setback.yml
+         #ansible-playbook -i terraform_inventory.py id.yml
+  
+  AnsibleB:
+   name: ansible playbook for back
+   runs-on: ubuntu-22.04
+   needs:
+   - buildbackend
+   - buildfrontend
+   - terraform
+   env:
+     AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+     AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+     AWS_DEFAULT_REGION: ${{ secrets.AWS_DEFAULT_REGION }}
+   steps:
+
+      - name: Configure AWS to assume role
+        uses: aws-actions/configure-aws-credentials@v2
+        with:
+          role-to-assume: ${{ secrets.AWS_ASSUME_ROLE_ARN }}
+          role-session-name: github-actions
+          role-skip-session-tagging: true
+          role-duration-seconds: 900   
+          aws-region: ${{ secrets.AWS_DEFAULT_REGION }}
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+      
+      - uses: actions/checkout@v4
+      - name: Download frontend artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: frontend-dist
+          path: ./ansible/front  
+      
+      - name: Download WAR Artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: dev-war
+          path: ./ansible/
+      
+      - name: Download Terraform outputs
+        uses: actions/download-artifact@v4
+        with:
+          name: terraform-output
+          path: ./ansible/
+
+      - name: Install Ansible
+        run: |
+         python -m pip install --upgrade pip
+         pip install ansible boto3 botocore
+      - name: Set up SSH key
+        run: |
+         mkdir -p ~/.ssh
+         echo "${{ secrets.EC2_KEY }}" > ~/.ssh/teachua-key.pem
+         chmod 600 ~/.ssh/teachua-key.pem
+        
+      - name: Run Ansible playbook
+        run: |
+         #cp target/dev.war ansible/dev.war
+         cd ansible 
+         eval "$(ssh-agent -s)"
+         ssh-add ~/.ssh/teachua-key.pem
+         ls
+         tree
+         #ansible-playbook -i terraform_inventory.py frontend.yml
+         #ansible-playbook -i terraform_inventory.py test-conection.yml
+         ansible-playbook -i terraform_inventory.py main.yml
+          
+
+
+
+          
+
+

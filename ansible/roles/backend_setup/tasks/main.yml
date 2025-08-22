@@ -1,0 +1,36 @@
+- import_tasks: install_deps.yml
+- name: Створити директорію /opt/app
+  become: true
+  ansible.builtin.file:
+    path: /opt/app
+    state: directory
+    owner: root
+    group: root
+    mode: '0755'
+
+- name: Копіювати dev.war на сервер
+  become: true
+  copy:
+    src: dev.war
+    dest: /opt/app/dev.war
+    owner: root
+    group: root
+    mode: '0644'
+
+- name: Копіювати data.sql на сервер
+  become: true
+  copy:
+    src: ../data.sql
+    dest: /opt/app/data.sql
+    owner: root
+    group: root
+    mode: '0644'
+
+- name: Копіювати init.sql на сервер
+  become: true
+  copy:
+    src: ../init.sql
+    dest: /opt/app/init.sql
+    owner: root
+    group: root
+    mode: '0644'

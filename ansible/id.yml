@@ -1,0 +1,141 @@
+---
+- name: Retrieve RDS credentials (local or CI)
+  hosts: localhost
+  gather_facts: no
+  collections:
+    - amazon.aws
+  vars:
+    secret_name: "teachua-db-password"
+    region: "us-east-1"
+    role_arn: "arn:aws:iam::135424146100:role/TerraformExecutionRole"
+    profile: "terraform-user"
+
+  tasks:
+    - name: Check if AWS creds already in ENV (CI case)
+      set_fact:
+        creds_in_env: >-
+          {{ lookup('env', 'AWS_ACCESS_KEY_ID') != '' and
+             lookup('env', 'AWS_SECRET_ACCESS_KEY') != '' }}
+
+    - name: Assume role to get temporary credentials (local case)
+      amazon.aws.sts_assume_role:
+        profile: "{{ profile }}"
+        role_arn: "{{ role_arn }}"
+        role_session_name: "mysession"
+      register: assumed_role
+      when: not creds_in_env
+
+    - name: Lookup secret from AWS Secrets Manager
+      set_fact:
+        db_secret: >-
+          {{ lookup(
+               'amazon.aws.aws_secret',
+               secret_name,
+               region=region,
+               access_key=(assumed_role.sts_creds.access_key if not creds_in_env else lookup('env', 'AWS_ACCESS_KEY_ID')),
+               secret_key=(assumed_role.sts_creds.secret_key if not creds_in_env else lookup('env', 'AWS_SECRET_ACCESS_KEY')),
+               session_token=(assumed_role.sts_creds.session_token if not creds_in_env else lookup('env', 'AWS_SESSION_TOKEN'))
+             )
+          }}
+
+    - name: Save DB credentials for next play
+      set_fact:
+        db_user: "teachua_user"
+        db_pass: "{{ db_secret }}"
+        db_name: "teachua"
+
+
+- name: Load initial MariaDB data from backend VM
+  hosts: backend
+  become: yes
+  vars:
+    db_user: "{{ hostvars['localhost'].db_user }}"
+    db_pass: "{{ hostvars['localhost'].db_pass }}"
+    db_host: "{{ database_endpoint.split(':')[0] }}"
+    db_port: "{{ database_endpoint.split(':')[1] }}"
+    db_name: "{{ hostvars['localhost'].db_name }}"
+
+  tasks:
+    - name: Load schema
+      community.mysql.mysql_db:
+        state: import
+        name: "{{ db_name }}"
+        login_host: "{{ db_host }}"
+        login_user: "{{ db_user }}"
+        login_password: "{{ db_pass }}"
+        target: "/opt/app/init.sql"
+        restrict_config_file: true
+
+    - name: Load initial data
+      community.mysql.mysql_db:
+        state: import
+        name: "{{ db_name }}"
+        login_host: "{{ db_host }}"
+        login_port: "{{ db_port }}"
+        login_user: "{{ db_user }}"
+        login_password: "{{ db_pass }}"
+        target: "/opt/app/data.sql"
+
+
+- name: Deploy and run backend
+  hosts: backend
+  become: yes
+  vars:
+    app_path: /opt/app
+    war_file: dev.war
+    java_opts: "-Xms512m -Xmx1024m"
+    db_user: "{{ hostvars['localhost'].db_user }}"
+    db_pass: "{{ hostvars['localhost'].db_pass }}"
+    db_host: "{{ database_endpoint.split(':')[0] }}"
+    db_port: "{{ database_endpoint.split(':')[1] }}"
+    db_name: "{{ hostvars['localhost'].db_name }}"
+  tasks:
+    - name: Ensure Java is installed
+      apt:
+        name: default-jdk
+        state: present
+      when: ansible_os_family == "Debian"
+
+
+    - name: Create systemd env for backend
+      copy:
+        dest: /etc/backend.env
+        content: |
+          SPRING_DATASOURCE_URL=jdbc:mariadb://{{ db_host }}:{{ db_port }}/{{ db_name }}
+          SPRING_DATASOURCE_USERNAME={{ db_user }}
+          SPRING_DATASOURCE_PASSWORD={{ db_pass }}
+          SPRING_DATASOURCE_DRIVER_CLASS_NAME=org.mariadb.jdbc.Driver
+
+
+
+    - name: Create systemd service for backend
+      copy:
+        dest: /etc/systemd/system/backend.service
+        content: |
+          [Unit]
+          Description=TeachUA Backend
+          After=network.target
+
+          [Service]
+          User=ec2-user
+          ExecStart=/usr/bin/java {{ java_opts }} -jar {{ app_path }}/{{ war_file }}
+          Restart=always
+          RestartSec=5
+          EnvironmentFile=/etc/backend.env 
+
+          [Install]
+          WantedBy=multi-user.target
+      notify: Restart backend service
+
+    - name: Enable and start backend service
+      systemd:
+        name: backend
+        enabled: yes
+        state: started
+
+  handlers:
+    - name: Restart backend service
+      systemd:
+        name: backend
+        state: restarted
+        daemon_reload: yes

@@ -1,0 +1,10 @@
+---
+- name: Видалити MariaDB клієнт
+  ansible.builtin.yum:
+    name: mariadb1011
+    state: absent
+
+- name: Видалити OpenJDK 17
+  ansible.builtin.yum:
+    name: java-17-amazon-corretto-devel
+    state: absent

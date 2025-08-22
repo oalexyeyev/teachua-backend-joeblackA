@@ -1,0 +1,49 @@
+---
+- name: Примусово задати пакетний менеджер
+  set_fact:
+    ansible_pkg_mgr: yum
+
+- name: Встановити squid через yum
+  ansible.builtin.yum:
+    name: squid
+    state: present
+    use_backend: dnf4
+
+- name: Запустити та увімкнути сервіс squid
+  systemd:
+    name: squid
+    state: started
+    enabled: yes
+  when: ansible_pkg_mgr == 'yum'
+
+- name: Згенерувати конфіг squid
+  ansible.builtin.template:
+    src: squid.conf.j2
+    dest: /etc/squid/squid.conf
+    owner: root
+    group: root
+    mode: '0644'
+  notify:
+    - restart squid
+
+- name: Запустити та додати squid в автозапуск
+  ansible.builtin.service:
+    name: squid
+    state: started
+    enabled: yes
+
+
+#- name: Налаштувати firewall (якщо UFW)
+#  ansible.builtin.ufw:
+#    rule: allow
+#    port: "{{ squid_port }}"
+#    proto: tcp
+#  when: ansible_facts.os_family == "Debian"
+
+#- name: Налаштувати firewall (firewalld для RHEL/CentOS)
+#  ansible.builtin.firewalld:
+#    service: squid
+#    permanent: yes
+#    state: enabled
+#    immediate: yes
+# when: ansible_facts.os_family == "RedHat"

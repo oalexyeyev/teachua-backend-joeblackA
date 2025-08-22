@@ -1,0 +1,72 @@
+---
+- name: Setup Node Exporter on Backend
+  hosts: backend
+  become: yes
+  vars:
+    node_exporter_port: 9100
+    proxy_ip: "{{bastion_private_ip}}"
+    proxy_port: 3128
+
+  tasks:
+    - name: Copy manual setup script
+      copy:
+        dest: /home/ec2-user/setup_node_exporter.sh
+        content: |
+          #!/bin/bash
+          # Install Docker
+          # Update packages
+          sudo yum update -y
+
+          # Install Docker
+          sudo amazon-linux-extras enable docker
+          sudo yum install -y docker
+
+          # Start Docker service
+          sudo systemctl start docker
+          sudo systemctl enable docker
+
+          # Add ec2-user to docker group (so no sudo is needed)
+          sudo usermod -aG docker ec2-user
+
+
+          # Configure Docker proxy
+          mkdir -p /etc/systemd/system/docker.service.d
+          tee /etc/systemd/system/docker.service.d/http-proxy.conf <<EOF
+          [Service]
+          Environment="HTTP_PROXY=http://{{ proxy_ip }}:{{ proxy_port }}/"
+          Environment="HTTPS_PROXY=http://{{ proxy_ip }}:{{ proxy_port }}/"
+          Environment="NO_PROXY=localhost,127.0.0.1,169.254.169.254"
+          EOF
+          systemctl daemon-reload
+          systemctl restart docker
+
+          # Install Docker Compose
+          curl -L "https://github.com/docker/compose/releases/download/v2.29.2/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose
+          chmod +x /usr/local/bin/docker-compose
+
+          # Create docker-compose file for Node Exporter
+          cat <<EOD > /home/ec2-user/docker-compose.monitoring.yml
+          version: "3.8"
+          services:
+            node-exporter:
+              image: prom/node-exporter:latest
+              container_name: node-exporter
+              restart: unless-stopped
+              network_mode: "host"
+              pid: "host"
+              volumes:
+                - /:/host:ro,rslave
+              command:
+                - '--path.rootfs=/host'
+              ports:
+                - "${NODE_EXPORTER_PORT:-{{ node_exporter_port }}}:9100"
+          EOD
+
+          # Run Node Exporter
+          NODE_EXPORTER_PORT={{ node_exporter_port }} /usr/local/bin/docker-compose -f /home/ec2-user/docker-compose.monitoring.yml up -d
+        mode: '0755'
+
+    - name: Execute manual setup script
+      shell: /home/ec2-user/setup_node_exporter.sh
+      args:
+        executable: /bin/bash

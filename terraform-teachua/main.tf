@@ -1,0 +1,79 @@
+terraform {
+  required_providers {
+    aws = {
+      source  = "hashicorp/aws"
+      version = "~> 5.0"
+    }
+
+    # Add gcp here if needed
+    #    google = {
+    #      source  = "hashicorp/google"
+    #      version = "~> 6.0"
+    #    }
+
+
+  }
+}
+
+resource "random_password" "db_password" {
+  length           = 16
+  special          = true
+  override_special = "_%#^&*()-+=[]{}:;,.?~" # No / @ " or space
+}
+
+#output "generated_db_password" {
+# value     = random_password.db_password.result
+#sensitive = true
+#}
+
+
+
+variable "aws_profile" {
+  type    = string
+  default = "terraform-user"
+}
+
+variable "assume_role" {
+  type    = bool
+  default = true
+}
+
+provider "aws" {
+  region  = var.aws_region
+  profile = var.aws_profile
+
+  dynamic "assume_role" {
+    for_each = var.assume_role ? [1] : []
+    content {
+      role_arn     = var.assume_role_arn
+      session_name = "local-terraform"
+    }
+  }
+}
+
+module "aws" {
+  source = "./aws"
+  count  = var.cloud == "aws" ? 1 : 0
+
+  bastion_allowed_cidr = var.bastion_allowed_cidr
+  key_pair_name        = var.key_pair_name
+  db_username          = var.db_username
+  db_password          = random_password.db_password.result
+  #var.db_password
+}
+
+
+# Optional: GCP module if you use multi-cloud
+#module "gcp" {
+# source = "./gcp"
+
+
+#count                = var.cloud == "gcp" ? 1 : 0
+#gcp_project          = var.gcp_project
+#gcp_region           = var.gcp_region
+#gcp_credentials_file = var.gcp_credentials_file
+#db_username          = var.db_username
+#db_password          = var.db_password
+
+
+#}
